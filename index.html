@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>தமிழ் ஜாதக மென்பொருள்</title>
+    <!-- நிலையான CSS ஸ்டைல்கள் (Preview-விலும் 100% வேலை செய்யும்) -->
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; }
+        .container { max-w: 650px; margin: 30px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #dd6b20; text-align: center; margin-bottom: 25px; font-size: 28px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: bold; margin-bottom: 6px; color: #4a5568; }
+        input[type="text"], input[type="date"], input[type="time"] { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; background-color: #ed8936; color: white; border: none; padding: 14px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+        button:hover { background-color: #dd6b20; }
+        .results-section { margin-top: 30px; border-top: 3px solid #ed8936; padding-top: 20px; }
+        
+        /* 🪐 தென்னிந்திய பாரம்பரிய ராசி கட்டத்திற்கான கிரிட் டிசைன் (3x3 Grid) */
+        .rasi-chart { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); width: 320px; height: 320px; margin: 20px auto; border: 2px solid #2d3748; background: #fffaf0; }
+        .box { border: 1px solid #cbd5e0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; padding: 2px; text-align: center; box-sizing: border-box; }
+        .center-box { grid-column: 2 / 4; grid-row: 2 / 4; background-color: #feebc8; font-size: 16px; color: #dd6b20; }
+        .box-title { font-size: 10px; color: #718096; margin-bottom: 2px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🔮 தமிழ் ஜாதகக் கணக்கீடு</h1>
+        
+        <!-- இன்புட் படிவம் -->
+        <form id="horoscopeForm">
+            <div class="form-group">
+                <label>பெயர்:</label>
+                <input type="text" id="name" placeholder="உங்கள் பெயரை உள்ளிடவும்" required>
+            </div>
+            <div class="form-group" style="display: flex; gap: 15px;">
+                <div style="flex: 1;">
+                    <label>பிறந்த தேதி:</label>
+                    <input type="date" id="dob" required>
+                </div>
+                <div style="flex: 1;">
+                    <label>பிறந்த நேரம்:</label>
+                    <input type="time" id="tob" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>பிறந்த ஊர்:</label>
+                <input type="text" id="place" placeholder="உதாரணம்: Chennai" required>
+            </div>
+            <button type="submit">ஜாதகம் கணிப்பீடு செய் ➡️</button>
+        </form>
+
+        <!-- ஜாதக முடிவுகள் காட்டும் பகுதி -->
+        <div class="results-section">
+            <h2 style="color: #2d3748; font-size: 22px; margin-bottom: 15px;">📜 ஜாதகப் பலன்கள் மற்றும் கட்டம்</h2>
+            
+            <!-- ராசி கட்டம் UI (தென்னிந்திய முறைப்படி) -->
+            <div class="rasi-chart">
+                <!-- Row 1 -->
+                <div class="box"><span class="box-title">மீனம்</span><div id="p12">-</div></div>
+                <div class="box"><span class="box-title">மேஷம்</span><div id="p1">-</div></div>
+                <div class="box"><span class="box-title">ரிஷபம்</span><div id="p2">-</div></div>
+                <div class="box"><span class="box-title">மிதுனம்</span><div id="p3">-</div></div>
+                
+                <!-- Row 2 -->
+                <div class="box"><span class="box-title">கும்பம்</span><div id="p11">-</div></div>
+                <div class="center-box">ராசி<br>கட்டம்</div>
+                <div class="box"><span class="box-title">கடகம்</span><div id="p4">-</div></div>
+                
+                <!-- Row 3 -->
+                <div class="box"><span class="box-title">மகரம்</span><div id="p10">-</div></div>
+                <div class="box"><span class="box-title">சிம்மம்</span><div id="p5">-</div></div>
+                
+                <!-- Row 4 -->
+                <div class="box"><span class="box-title">தனுசு</span><div id="p9">-</div></div>
+                <div class="box"><span class="box-title">விருச்சிகம்</span><div id="p8">-</div></div>
+                <div class="box"><span class="box-title">துலாம்</span><div id="p7">-</div></div>
+                <div class="box"><span class="box-title">கன்னி</span><div id="p6">-</div></div>
+            </div>
+
+            <div id="predictionOutput" style="margin-top: 20px; line-height: 1.6; color: #4a5568;">
+                விபரங்களை உள்ளிட்ட பின் ஜாதகப் பலன்கள் இங்கே தமிழில் தோன்றும்.
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
