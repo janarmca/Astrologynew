@@ -1,10 +1,10 @@
 // ============================================================
-// TAMIL HOROSCOPE APP - VedAstro API (Working)
-// API Key: ak-136ade485bd48f55033664d318f72471ef3ef481
+// TAMIL HOROSCOPE APP - COMPLETE FIX
+// Planets + Dasha Working
 // ============================================================
 
 const CONFIG = {
-    API_KEY: 'ak-136ade485bd48f55033664d318f72471ef3ef481',
+    API_KEY: '34e79705-9a11-5e56-b5ea-a189f8d60942',
     BASE_URL: 'https://api.vedastro.org/api',
     AYANAMSA: 'LAHIRI'
 };
@@ -91,22 +91,17 @@ async function getLocationCoordinates(cityName, userLat, userLon) {
 }
 
 // ============================================================
-// 4. ✅ VEDASTRO API CALL (WORKING)
+// 4. ✅ MAIN API CALL - FIXED
 // ============================================================
 
 async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
     try {
         const finalKey = apiKey || CONFIG.API_KEY;
         const location = await getLocationCoordinates(city, userLat, userLon);
-        
-        // ✅ Correct Time Format
         const birthTime = `${time} ${dob} ${location.tz}`;
 
         console.log('📡 Calling VedAstro API...');
-        console.log('📍 Location:', location.lat, location.lon);
-        console.log('🕐 Birth Time:', birthTime);
 
-        // ✅ CORRECT API CALL
         const response = await fetch(`${CONFIG.BASE_URL}/Calculate/HoroscopePredictions`, {
             method: 'POST',
             headers: {
@@ -119,14 +114,12 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
                     Longitude: location.lon,
                     Name: location.name || city || 'Custom'
                 },
-                birthTime: birthTime,  // ✅ Correct parameter
+                birthTime: birthTime,
                 Ayanamsa: CONFIG.AYANAMSA
             })
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Error Response:', errorText);
             throw new Error(`API பிழை: ${response.status}`);
         }
 
@@ -137,10 +130,10 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
             throw new Error(`API பிழை: ${data.Payload || 'Unknown error'}`);
         }
 
-        // ✅ Extract planets from VedAstro response
+        // ✅ FIXED: Extract planets from both Payload and Planets
         const planetPositions = extractPlanetsVedAstro(data);
         
-        // ✅ Get Dasha
+        // ✅ FIXED: Get Dasha
         const dashaData = await getDashaVedAstro(dob, time, location, finalKey);
 
         return {
@@ -161,7 +154,7 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
 }
 
 // ============================================================
-// 5. ✅ EXTRACT PLANETS FROM VEDASTRO
+// 5. ✅ FIXED: EXTRACT PLANETS FROM VEDASTRO
 // ============================================================
 
 function extractPlanetsVedAstro(data) {
@@ -170,10 +163,10 @@ function extractPlanetsVedAstro(data) {
 
     console.log('🔍 Extracting planets from VedAstro...');
 
-    // VedAstro Payload is an ARRAY
+    // Case 1: Payload is Array
     if (Array.isArray(payload)) {
         payload.forEach(item => {
-            // Check if it's a planet entry
+            // Check if it's a planet entry (has Planet and Sign)
             if (item.Planet && item.Sign) {
                 const planetName = item.Planet;
                 const signName = item.Sign;
@@ -189,6 +182,22 @@ function extractPlanetsVedAstro(data) {
                 };
             }
         });
+    }
+
+    // Case 2: Payload has Planets object
+    if (payload && payload.Planets) {
+        for (const [key, value] of Object.entries(payload.Planets)) {
+            const signName = value.Sign;
+            const signIndex = getSignIndex(signName);
+            planets[key] = {
+                sign: signIndex,
+                signName: ZODIAC_SIGNS_TAMIL[signIndex] || signName,
+                house: value.House || 0,
+                degree: value.Degree || 0,
+                nakshatra: value.Nakshatra || '',
+                prediction: value.Description || ''
+            };
+        }
     }
 
     // Get Ascendant
@@ -209,13 +218,15 @@ function extractPlanetsVedAstro(data) {
 }
 
 // ============================================================
-// 6. ✅ DASHA API
+// 6. ✅ FIXED: DASHA API
 // ============================================================
 
 async function getDashaVedAstro(dob, time, location, apiKey) {
     try {
         const finalKey = apiKey || CONFIG.API_KEY;
         const birthTime = `${time} ${dob} ${location.tz}`;
+
+        console.log('📊 Getting Dasha...');
 
         const response = await fetch(`${CONFIG.BASE_URL}/Calculate/DasaAtTime`, {
             method: 'POST',
@@ -235,10 +246,18 @@ async function getDashaVedAstro(dob, time, location, apiKey) {
             })
         });
 
-        if (!response.ok) return null;
+        if (!response.ok) {
+            console.warn('Dasha API error:', response.status);
+            return null;
+        }
         
         const data = await response.json();
-        if (data.Status === 'Fail') return null;
+        console.log('📊 Dasha Response:', data);
+        
+        if (data.Status === 'Fail') {
+            console.warn('Dasha failed:', data.Payload);
+            return null;
+        }
 
         // Parse Dasha
         let payload = data.Payload;
@@ -246,10 +265,39 @@ async function getDashaVedAstro(dob, time, location, apiKey) {
             payload = payload.VimshottariDasha;
         }
 
-        return {
-            currentDasha: payload?.Mahadasha?.Planet || null,
-            currentBhukti: payload?.Antardasha?.Planet || null
+        const dashaInfo = {
+            currentDasha: null,
+            currentBhukti: null,
+            currentPratyantar: null
         };
+
+        if (payload) {
+            if (payload.Mahadasha) {
+                dashaInfo.currentDasha = {
+                    planet: payload.Mahadasha.Planet || 'Unknown',
+                    planetTamil: PLANET_NAMES_TAMIL[payload.Mahadasha.Planet] || payload.Mahadasha.Planet,
+                    startDate: payload.Mahadasha.StartDate || null,
+                    endDate: payload.Mahadasha.EndDate || null,
+                    years: payload.Mahadasha.Years || 0
+                };
+            }
+            if (payload.Antardasha) {
+                dashaInfo.currentBhukti = {
+                    planet: payload.Antardasha.Planet || 'Unknown',
+                    planetTamil: PLANET_NAMES_TAMIL[payload.Antardasha.Planet] || payload.Antardasha.Planet,
+                    startDate: payload.Antardasha.StartDate || null,
+                    endDate: payload.Antardasha.EndDate || null
+                };
+            }
+            if (payload.PratyantarDasha) {
+                dashaInfo.currentPratyantar = {
+                    planet: payload.PratyantarDasha.Planet || 'Unknown',
+                    planetTamil: PLANET_NAMES_TAMIL[payload.PratyantarDasha.Planet] || payload.PratyantarDasha.Planet
+                };
+            }
+        }
+
+        return dashaInfo;
 
     } catch (error) {
         console.error('Dasha error:', error);
@@ -258,7 +306,7 @@ async function getDashaVedAstro(dob, time, location, apiKey) {
 }
 
 // ============================================================
-// 7. CHART FUNCTIONS
+// 7. ✅ FIXED: CHART DISPLAY
 // ============================================================
 
 function buildChartGrid() {
@@ -296,7 +344,11 @@ function prepareChartData(planetData) {
     for (const [planet, data] of Object.entries(planetData)) {
         if (planet === 'Ascendant') {
             if (chart[0]) {
-                chart[0].push({ name: 'லக்னம்', key: 'Ascendant', isAscendant: true });
+                chart[0].push({ 
+                    name: 'லக்னம்', 
+                    key: 'Ascendant', 
+                    isAscendant: true 
+                });
             }
             continue;
         }
@@ -307,10 +359,21 @@ function prepareChartData(planetData) {
                 name: tamilName, 
                 key: planet, 
                 isAscendant: false,
-                prediction: data.prediction || ''
+                house: data.house,
+                degree: data.degree
             });
         }
     }
+
+    // Sort planets in each house
+    chart.forEach(house => {
+        house.sort((a, b) => {
+            if (a.isAscendant) return -1;
+            if (b.isAscendant) return 1;
+            return a.name.localeCompare(b.name);
+        });
+    });
+
     return chart;
 }
 
@@ -324,23 +387,32 @@ function displayHoroscope(result) {
 
     const chartData = prepareChartData(result.planets);
 
+    // Update each house with planets
     for (let i = 0; i < 12; i++) {
         const houseId = `p${i + 1}`;
         const planetContainer = document.getElementById(`planets-${houseId}`);
         if (planetContainer) {
             const planets = chartData[i] || [];
             if (planets.length > 0) {
-                planetContainer.textContent = planets.map(p => p.name).join(', ');
+                // Show planet names with house numbers
+                const names = planets.map(p => {
+                    if (p.isAscendant) return '⬆️ லக்னம்';
+                    return p.name;
+                }).join(', ');
+                planetContainer.textContent = names;
                 planetContainer.style.color = '#34495e';
                 planetContainer.style.fontWeight = '500';
+                planetContainer.style.fontSize = '12px';
             } else {
                 planetContainer.textContent = '−';
                 planetContainer.style.color = '#ccc';
                 planetContainer.style.fontWeight = 'normal';
+                planetContainer.style.fontSize = '11px';
             }
         }
     }
 
+    // Show Lagna in house 1
     if (result.lagna) {
         const p1 = document.getElementById('p1');
         if (p1) {
@@ -355,55 +427,21 @@ function displayHoroscope(result) {
         }
     }
 
+    // Display Dasha
     displayDasha(result.dasha);
+    
+    // Display Birth Info
     displayBirthInfo(result);
+    
+    // Display Predictions
     displayPredictionsVedAstro(result.rawData);
 
     showToast('✅ ஜாதகம் கணக்கிடப்பட்டது!', 'success');
 }
 
 // ============================================================
-// 8. ✅ DISPLAY PREDICTIONS FROM VEDASTRO
+// 8. ✅ FIXED: DISPLAY DASHA
 // ============================================================
-
-function displayPredictionsVedAstro(rawData) {
-    const container = document.getElementById('predictions-container');
-    if (!container) return;
-
-    let html = `
-        <div style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px;">
-            <h3 style="color: #2c3e50; margin-bottom: 15px;">📜 ஜாதக பலன்கள்</h3>
-    `;
-
-    let hasPredictions = false;
-
-    if (rawData && rawData.Payload && Array.isArray(rawData.Payload)) {
-        rawData.Payload.forEach(item => {
-            if (item.Description && item.Tags) {
-                hasPredictions = true;
-                const tags = item.Tags.join(', ');
-                html += `
-                    <div class="prediction-card">
-                        <div class="planet-name">📖 ${item.Name || 'Prediction'}</div>
-                        <div class="planet-sign">${tags}</div>
-                        <div class="prediction-text">${item.Description}</div>
-                    </div>
-                `;
-            }
-        });
-    }
-
-    if (!hasPredictions) {
-        html += `
-            <div style="text-align: center; padding: 20px; color: #999;">
-                <p>📖 பலன்கள் கிடைக்கவில்லை</p>
-            </div>
-        `;
-    }
-
-    html += `</div>`;
-    container.innerHTML = html;
-}
 
 function displayDasha(dashaData) {
     const container = document.getElementById('dasha-info');
@@ -415,24 +453,41 @@ function displayDasha(dashaData) {
     }
 
     let html = `<div class="dasha-grid">`;
+
+    // Mahadasha
     if (dashaData.currentDasha) {
-        const dashaName = PLANET_NAMES_TAMIL[dashaData.currentDasha] || dashaData.currentDasha;
+        const d = dashaData.currentDasha;
         html += `
             <div class="dasha-card" style="border-left-color: #3498db;">
                 <div class="label">📊 மஹாதசா</div>
-                <div class="value">${dashaName}</div>
+                <div class="value">${d.planetTamil || d.planet}</div>
+                <div class="sub">${d.years ? d.years + ' ஆண்டுகள்' : ''}</div>
             </div>
         `;
     }
+
+    // Bhukti (Antardasha)
     if (dashaData.currentBhukti) {
-        const bhuktiName = PLANET_NAMES_TAMIL[dashaData.currentBhukti] || dashaData.currentBhukti;
+        const b = dashaData.currentBhukti;
         html += `
             <div class="dasha-card" style="border-left-color: #f39c12;">
-                <div class="label">🔄 புக்தி</div>
-                <div class="value">${bhuktiName}</div>
+                <div class="label">🔄 புக்தி (அந்தர்தசா)</div>
+                <div class="value">${b.planetTamil || b.planet}</div>
             </div>
         `;
     }
+
+    // Pratyantar Dasha
+    if (dashaData.currentPratyantar) {
+        const p = dashaData.currentPratyantar;
+        html += `
+            <div class="dasha-card" style="border-left-color: #2ecc71;">
+                <div class="label">⚡ பிரத்யந்தர தசா</div>
+                <div class="value">${p.planetTamil || p.planet}</div>
+            </div>
+        `;
+    }
+
     html += `</div>`;
     container.innerHTML = html;
 }
@@ -452,6 +507,45 @@ function displayBirthInfo(result) {
         <span>🕐 ${result.birthTime || ''}</span>
         <span>📐 ${result.ayanamsa || 'LAHIRI'}</span>
     `;
+}
+
+function displayPredictionsVedAstro(rawData) {
+    const container = document.getElementById('predictions-container');
+    if (!container) return;
+
+    let html = `
+        <div style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px;">
+            <h3 style="color: #2c3e50; margin-bottom: 15px;">📜 ஜாதக பலன்கள்</h3>
+    `;
+
+    let hasPredictions = false;
+
+    if (rawData && rawData.Payload && Array.isArray(rawData.Payload)) {
+        rawData.Payload.forEach(item => {
+            if (item.Description && item.Tags) {
+                hasPredictions = true;
+                const tags = Array.isArray(item.Tags) ? item.Tags.join(', ') : item.Tags;
+                html += `
+                    <div class="prediction-card">
+                        <div class="planet-name">📖 ${item.Name || 'Prediction'}</div>
+                        <div class="planet-sign">${tags || ''}</div>
+                        <div class="prediction-text">${item.Description}</div>
+                    </div>
+                `;
+            }
+        });
+    }
+
+    if (!hasPredictions) {
+        html += `
+            <div style="text-align: center; padding: 20px; color: #999;">
+                <p>📖 பலன்கள் கிடைக்கவில்லை</p>
+            </div>
+        `;
+    }
+
+    html += `</div>`;
+    container.innerHTML = html;
 }
 
 // ============================================================
@@ -559,40 +653,7 @@ function setupFormSubmit() {
 }
 
 // ============================================================
-// 11. INIT
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    buildChartGrid();
-    setupAutocomplete();
-    setupAdvancedToggle();
-    setupAutoSelect();
-    setupFormSubmit();
-
-    const apiKeyInput = document.getElementById('api-key');
-    if (apiKeyInput && !apiKeyInput.value) {
-        apiKeyInput.value = CONFIG.API_KEY;
-    }
-
-    window.TamilHoroscope = {
-        calculateHoroscope,
-        CONFIG,
-        test: async function(dob = '25/10/1992', time = '14:30', city = 'சென்னை') {
-            console.log('🔮 Testing Horoscope...');
-            const result = await calculateHoroscope(dob, time, city, CONFIG.API_KEY);
-            console.log('📊 Result:', result);
-            return result;
-        }
-    };
-
-    console.log('✅ Tamil Horoscope Loaded - VedAstro API');
-    console.log('🔑 API Key:', CONFIG.API_KEY);
-    console.log('📐 Ayanamsa: LAHIRI');
-    console.log('🌐 Try: TamilHoroscope.test()');
-});
-
-// ============================================================
-// 12. CSS FOR PREDICTIONS
+// 11. CSS
 // ============================================================
 
 const style = document.createElement('style');
@@ -628,5 +689,60 @@ style.textContent = `
         border-top: 1px solid #f0f0f0;
         padding-top: 8px;
     }
+    .dasha-card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #3498db;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .dasha-card .label {
+        font-size: 12px;
+        color: #7f8c8d;
+        margin-bottom: 4px;
+    }
+    .dasha-card .value {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    .dasha-card .sub {
+        font-size: 12px;
+        color: #555;
+        margin-top: 4px;
+    }
 `;
 document.head.appendChild(style);
+
+// ============================================================
+// 12. INIT
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    buildChartGrid();
+    setupAutocomplete();
+    setupAdvancedToggle();
+    setupAutoSelect();
+    setupFormSubmit();
+
+    const apiKeyInput = document.getElementById('api-key');
+    if (apiKeyInput && !apiKeyInput.value) {
+        apiKeyInput.value = CONFIG.API_KEY;
+    }
+
+    window.TamilHoroscope = {
+        calculateHoroscope,
+        CONFIG,
+        test: async function(dob = '25/10/1992', time = '14:30', city = 'சென்னை') {
+            console.log('🔮 Testing Horoscope...');
+            const result = await calculateHoroscope(dob, time, city, CONFIG.API_KEY);
+            console.log('📊 Result:', result);
+            return result;
+        }
+    };
+
+    console.log('✅ Tamil Horoscope Loaded - VedAstro API');
+    console.log('🔑 API Key:', CONFIG.API_KEY);
+    console.log('📐 Ayanamsa: LAHIRI');
+    console.log('🌐 Try: TamilHoroscope.test()');
+});
