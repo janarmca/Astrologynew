@@ -3,88 +3,478 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>தமிழ் ஜாதக மென்பொருள்</title>
-    <!-- நிலையான CSS ஸ்டைல்கள் (Preview-விலும் 100% வேலை செய்யும்) -->
+    <title>தமிழ் ஜாதகம் - இலவச ஆன்லைன் ஜாதக கணக்கீடு</title>
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; padding: 20px; }
-        .container { max-w: 650px; margin: 30px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { color: #dd6b20; text-align: center; margin-bottom: 25px; font-size: 28px; }
-        .form-group { margin-bottom: 18px; }
-        label { display: block; font-weight: bold; margin-bottom: 6px; color: #4a5568; }
-        input[type="text"], input[type="date"], input[type="time"] { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        button { width: 100%; background-color: #ed8936; color: white; border: none; padding: 14px; font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
-        button:hover { background-color: #dd6b20; }
-        .results-section { margin-top: 30px; border-top: 3px solid #ed8936; padding-top: 20px; }
+        /* ============================================
+           COMPLETE CSS STYLES
+           ============================================ */
         
-        /* 🪐 தென்னிந்திய பாரம்பரிய ராசி கட்டத்திற்கான கிரிட் டிசைன் (3x3 Grid) */
-        .rasi-chart { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); width: 320px; height: 320px; margin: 20px auto; border: 2px solid #2d3748; background: #fffaf0; }
-        .box { border: 1px solid #cbd5e0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; padding: 2px; text-align: center; box-sizing: border-box; }
-        .center-box { grid-column: 2 / 4; grid-row: 2 / 4; background-color: #feebc8; font-size: 16px; color: #dd6b20; }
-        .box-title { font-size: 10px; color: #718096; margin-bottom: 2px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans Tamil', 'Latha', 'Bamini', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 20px 0 30px 0;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        /* Form Styles */
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group input[type="submit"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            font-size: 16px;
+            padding: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 0;
+        }
+
+        .form-group input[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-group input[type="submit"]:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Advanced Toggle Button */
+        .advanced-toggle {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .advanced-toggle:hover {
+            background: #e0e0e0;
+        }
+
+        .advanced-fields {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+        }
+
+        .advanced-fields.show {
+            display: block;
+        }
+
+        /* Chart Styles - 12 Houses */
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #fafbfc;
+            border-radius: 12px;
+            border: 1px solid #e8ecf1;
+        }
+
+        .chart-title {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .house {
+            background: white;
+            border: 2px solid #e8ecf1;
+            border-radius: 8px;
+            padding: 12px 8px;
+            min-height: 90px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .house:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            z-index: 10;
+        }
+
+        .house-number {
+            font-size: 11px;
+            color: #999;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .house-sign {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .planet-names {
+            font-size: 11px;
+            color: #34495e;
+            line-height: 1.4;
+            min-height: 20px;
+        }
+
+        .lagna-label {
+            font-size: 10px;
+            color: #e74c3c;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        /* House Colors */
+        .house-1 { border-color: #FF6B6B; background: #fff5f5; }
+        .house-2 { border-color: #FF9F43; background: #fffaf0; }
+        .house-3 { border-color: #FECA57; background: #fffef5; }
+        .house-4 { border-color: #48DBFB; background: #f0fcff; }
+        .house-5 { border-color: #0ABDE3; background: #f0faff; }
+        .house-6 { border-color: #10AC84; background: #f0faf7; }
+        .house-7 { border-color: #FF6B6B; background: #fff5f5; }
+        .house-8 { border-color: #5F27CD; background: #f8f0ff; }
+        .house-9 { border-color: #341F97; background: #f5f0ff; }
+        .house-10 { border-color: #2e86de; background: #f0f5ff; }
+        .house-11 { border-color: #1dd1a1; background: #f0faf7; }
+        .house-12 { border-color: #8395a7; background: #f5f5f5; }
+
+        /* Special Positions */
+        .house.position-1 { grid-column: 2; grid-row: 2; }
+        .house.position-2 { grid-column: 3; grid-row: 2; }
+        .house.position-3 { grid-column: 4; grid-row: 2; }
+        .house.position-4 { grid-column: 4; grid-row: 1; }
+        .house.position-5 { grid-column: 4; grid-row: 3; }
+        .house.position-6 { grid-column: 3; grid-row: 3; }
+        .house.position-7 { grid-column: 2; grid-row: 3; }
+        .house.position-8 { grid-column: 1; grid-row: 3; }
+        .house.position-9 { grid-column: 1; grid-row: 1; }
+        .house.position-10 { grid-column: 2; grid-row: 1; }
+        .house.position-11 { grid-column: 3; grid-row: 1; }
+        .house.position-12 { grid-column: 1; grid-row: 2; }
+
+        /* Dasha Section */
+        .dasha-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .dasha-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .dasha-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .dasha-card .label {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+        }
+
+        .dasha-card .value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .dasha-card .sub {
+            font-size: 12px;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        /* Birth Info */
+        .birth-info {
+            display: none;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            border-left: 4px solid #2ecc71;
+        }
+
+        .birth-info span {
+            background: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            background: #2ecc71;
+            color: white;
+            font-size: 14px;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            animation: slideIn 0.4s ease;
+            max-width: 400px;
+        }
+
+        .toast.error {
+            background: #e74c3c;
+        }
+
+        .toast.info {
+            background: #3498db;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .header h1 { font-size: 1.6rem; }
+            .chart-grid { gap: 3px; }
+            .house { padding: 8px 4px; min-height: 70px; }
+            .house-sign { font-size: 11px; }
+            .planet-names { font-size: 10px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .birth-info { flex-direction: column; }
+        }
+
+        @media (max-width: 480px) {
+            .chart-grid { gap: 2px; }
+            .house { min-height: 60px; padding: 6px 2px; }
+            .house-number { font-size: 9px; }
+            .house-sign { font-size: 10px; }
+            .planet-names { font-size: 9px; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>🔮 தமிழ் ஜாதகக் கணக்கீடு</h1>
-        
-        <!-- இன்புட் படிவம் -->
-        <form id="horoscopeForm">
-            <div class="form-group">
-                <label>பெயர்:</label>
-                <input type="text" id="name" placeholder="உங்கள் பெயரை உள்ளிடவும்" required>
-            </div>
-            <div class="form-group" style="display: flex; gap: 15px;">
-                <div style="flex: 1;">
-                    <label>பிறந்த தேதி:</label>
-                    <input type="date" id="dob" required>
-                </div>
-                <div style="flex: 1;">
-                    <label>பிறந்த நேரம்:</label>
-                    <input type="time" id="tob" required>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>பிறந்த ஊர்:</label>
-                <input type="text" id="place" placeholder="உதாரணம்: Chennai" required>
-            </div>
-            <button type="submit">ஜாதகம் கணிப்பீடு செய் ➡️</button>
-        </form>
+        <!-- HEADER -->
+        <div class="header">
+            <h1>🔮 தமிழ் ஜாதகம்</h1>
+            <p>Lahiri Ayanamsa (Thirukanitha Panchangam) - துல்லியமான ஜாதக கணக்கீடு</p>
+        </div>
 
-        <!-- ஜாதக முடிவுகள் காட்டும் பகுதி -->
-        <div class="results-section">
-            <h2 style="color: #2d3748; font-size: 22px; margin-bottom: 15px;">📜 ஜாதகப் பலன்கள் மற்றும் கட்டம்</h2>
-            
-            <!-- ராசி கட்டம் UI (தென்னிந்திய முறைப்படி) -->
-            <div class="rasi-chart">
-                <!-- Row 1 -->
-                <div class="box"><span class="box-title">மீனம்</span><div id="p12">-</div></div>
-                <div class="box"><span class="box-title">மேஷம்</span><div id="p1">-</div></div>
-                <div class="box"><span class="box-title">ரிஷபம்</span><div id="p2">-</div></div>
-                <div class="box"><span class="box-title">மிதுனம்</span><div id="p3">-</div></div>
-                
-                <!-- Row 2 -->
-                <div class="box"><span class="box-title">கும்பம்</span><div id="p11">-</div></div>
-                <div class="center-box">ராசி<br>கட்டம்</div>
-                <div class="box"><span class="box-title">கடகம்</span><div id="p4">-</div></div>
-                
-                <!-- Row 3 -->
-                <div class="box"><span class="box-title">மகரம்</span><div id="p10">-</div></div>
-                <div class="box"><span class="box-title">சிம்மம்</span><div id="p5">-</div></div>
-                
-                <!-- Row 4 -->
-                <div class="box"><span class="box-title">தனுசு</span><div id="p9">-</div></div>
-                <div class="box"><span class="box-title">விருச்சிகம்</span><div id="p8">-</div></div>
-                <div class="box"><span class="box-title">துலாம்</span><div id="p7">-</div></div>
-                <div class="box"><span class="box-title">கன்னி</span><div id="p6">-</div></div>
-            </div>
+        <!-- FORM SECTION -->
+        <div class="form-section">
+            <form id="horoscope-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="dob">📅 பிறந்த தேதி</label>
+                        <input type="text" id="dob" placeholder="DD/MM/YYYY" value="25/10/1992" required>
+                    </div>
 
-            <div id="predictionOutput" style="margin-top: 20px; line-height: 1.6; color: #4a5568;">
-                விபரங்களை உள்ளிட்ட பின் ஜாதகப் பலன்கள் இங்கே தமிழில் தோன்றும்.
+                    <div class="form-group">
+                        <label for="time">🕐 பிறந்த நேரம்</label>
+                        <input type="text" id="time" placeholder="HH:MM (24-hr)" value="14:30" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">📍 பிறந்த ஊர்</label>
+                        <input type="text" id="city" placeholder="ஊர் பெயர்" list="city-suggestions" value="சென்னை">
+                        <datalist id="city-suggestions"></datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="api-key">🔑 VedAstro API Key</label>
+                        <input type="text" id="api-key" placeholder="API Key" value="FreeAPIUser" required>
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 1;">
+                        <button type="submit" id="submit-btn" style="padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: transform 0.2s;">🔮 ஜாதகம் கணக்கிடு</button>
+                    </div>
+                </div>
+
+                <!-- Advanced Toggle -->
+                <button type="button" class="advanced-toggle" id="advanced-toggle">
+                    🔧 Advanced (Coordinates)
+                </button>
+
+                <div class="advanced-fields" id="advanced-fields">
+                    <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+                        ⚡ Latitude & Longitude நேரடியாக உள்ளிடவும்
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 120px;">
+                            <label style="font-size: 12px;">Latitude</label>
+                            <input type="number" id="user-lat" step="0.0001" placeholder="13.0827" 
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+                        </div>
+                        <div style="flex: 1; min-width: 120px;">
+                            <label style="font-size: 12px;">Longitude</label>
+                            <input type="number" id="user-lon" step="0.0001" placeholder="80.2707" 
+                                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+                        </div>
+                    </div>
+                    <div style="font-size: 11px; color: #999; margin-top: 6px;">
+                        💡 தமிழ்நாடு: Lat 8°-13.5°N, Lon 76°-80.5°E
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- BIRTH INFO -->
+        <div id="birth-info" class="birth-info">
+            <!-- Dynamically populated -->
+        </div>
+
+        <!-- CHART CONTAINER -->
+        <div class="chart-container" id="chart-container">
+            <div class="chart-title">🌟 12 ராசி கட்டங்கள்</div>
+            <div class="chart-grid" id="chart-grid">
+                <!-- 12 Houses will be dynamically created by JavaScript -->
             </div>
+        </div>
+
+        <!-- DASHA SECTION -->
+        <div class="dasha-section" id="dasha-section">
+            <h3 style="margin-bottom: 15px; color: #2c3e50;">📅 தசா - புக்தி பலன்கள்</h3>
+            <div id="dasha-info">
+                <p style="color: #999; text-align: center; padding: 20px;">
+                    ஜாதகம் கணக்கிட்ட பின் தசா தரவு இங்கு காட்டப்படும்
+                </p>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
+            <p>Powered by VedAstro API • Lahiri Ayanamsa (Thirukanitha Panchangam) • தமிழ் ஜோதிடம்</p>
         </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT - EXTERNAL app.js -->
+    <!-- ============================================================ -->
     <script src="app.js"></script>
+
 </body>
 </html>
