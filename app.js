@@ -1,11 +1,6 @@
 // ============================================================
-// TAMIL HOROSCOPE APP - Full JavaScript
-// Lahiri Ayanamsa (Thirukanitha Panchangam)
+// TAMIL HOROSCOPE APP - FIXED API CALL
 // API Key: ak-136ade485bd48f55033664d318f72471ef3ef481
-// ============================================================
-
-// ============================================================
-// 1. CONSTANTS & CONFIGURATION
 // ============================================================
 
 // ✅ YOUR API KEY
@@ -44,15 +39,8 @@ const ZODIAC_SIGNS_ENGLISH = [
     'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
 ];
 
-const AYANAMSA = {
-    LAHIRI: 'LAHIRI',
-    RAMAN: 'RAMAN',
-    KRISHNAMURTI: 'KRISHNAMURTI',
-    TRUE_CITRA: 'TRUE_CITRA'
-};
-
 // ============================================================
-// 2. LOCATION DATABASE (Latitude & Longitude)
+// LOCATION DATABASE
 // ============================================================
 
 const LOCATIONS = {
@@ -103,7 +91,7 @@ const LOCATIONS = {
 };
 
 // ============================================================
-// 3. HELPER FUNCTIONS
+// HELPER FUNCTIONS
 // ============================================================
 
 function getSignIndex(signName) {
@@ -127,12 +115,8 @@ function isValidLongitude(lon) {
     return !isNaN(lon) && lon >= -180 && lon <= 180;
 }
 
-function isTamilNaduLocation(lat, lon) {
-    return lat >= 8.0 && lat <= 13.5 && lon >= 76.0 && lon <= 80.5;
-}
-
 // ============================================================
-// 4. LOCATION COORDINATE FUNCTIONS
+// LOCATION COORDINATE FUNCTIONS
 // ============================================================
 
 async function getLocationCoordinates(cityName, userLat, userLon) {
@@ -185,24 +169,24 @@ async function fetchCoordinatesFromPlaceName(placeName) {
 }
 
 // ============================================================
-// 5. API CALLS - LAHIRI AYANAMSA
+// ✅ FIXED API CALLS - Correct Parameter Names
 // ============================================================
 
 async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
     try {
-        // Use provided key or default
         const finalKey = apiKey || CONFIG.API_KEY;
-        
         let location = await getLocationCoordinates(city, userLat, userLon);
-        const stdTime = `${time} ${dob} ${location.tz}`;
 
-        console.log('📡 API Request:', { 
-            url: `${CONFIG.BASE_URL}/Calculate/HoroscopePredictions`,
+        // ✅ FIXED: Correct time format
+        const birthTime = `${time} ${dob} ${location.tz}`;
+
+        console.log('📡 API Request:', {
             location: `${location.lat}, ${location.lon}`,
-            ayanamsa: CONFIG.AYANAMSA,
-            key: finalKey.substring(0, 10) + '...'
+            birthTime: birthTime,
+            ayanamsa: CONFIG.AYANAMSA
         });
 
+        // ✅ FIXED: Using 'birthTime' instead of 'Time'
         const response = await fetch(`${CONFIG.BASE_URL}/Calculate/HoroscopePredictions`, {
             method: 'POST',
             headers: {
@@ -215,12 +199,14 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
                     Longitude: location.lon,
                     Name: location.name || city || 'Custom'
                 },
-                Time: { StdTime: stdTime },
+                birthTime: birthTime,  // ✅ FIXED: Changed from 'Time' to 'birthTime'
                 Ayanamsa: CONFIG.AYANAMSA
             })
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText);
             throw new Error(`API பிழை: ${response.status} - ${response.statusText}`);
         }
 
@@ -239,7 +225,7 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
             dasha: dashaData,
             rawData: data,
             location: location,
-            birthTime: stdTime,
+            birthTime: birthTime,
             ayanamsa: CONFIG.AYANAMSA + ' (Thirukanitha Panchangam)',
             lagna: planetPositions['Ascendant'] || null
         };
@@ -257,9 +243,10 @@ async function calculateDasha(dob, time, city, apiKey, location) {
             loc = await getLocationCoordinates(city);
         }
 
-        const stdTime = `${time} ${dob} ${loc.tz}`;
+        const birthTime = `${time} ${dob} ${loc.tz}`;
         const finalKey = apiKey || CONFIG.API_KEY;
 
+        // ✅ FIXED: Using 'birthTime' instead of 'Time'
         const response = await fetch(`${CONFIG.BASE_URL}/Calculate/DasaAtTime`, {
             method: 'POST',
             headers: {
@@ -272,7 +259,7 @@ async function calculateDasha(dob, time, city, apiKey, location) {
                     Longitude: loc.lon,
                     Name: loc.name || city
                 },
-                Time: { StdTime: stdTime },
+                birthTime: birthTime,  // ✅ FIXED: Changed from 'Time' to 'birthTime'
                 Ayanamsa: CONFIG.AYANAMSA,
                 DasaType: "Vimshottari"
             })
@@ -386,7 +373,7 @@ function parseDashaData(data) {
 }
 
 // ============================================================
-// 6. CHART RENDER FUNCTIONS
+// CHART RENDER FUNCTIONS
 // ============================================================
 
 function prepareChartData(planetData) {
@@ -585,7 +572,7 @@ function displayBirthInfo(result) {
 }
 
 // ============================================================
-// 7. TOAST NOTIFICATION
+// TOAST NOTIFICATION
 // ============================================================
 
 function showToast(message, type = 'info') {
@@ -605,7 +592,7 @@ function showToast(message, type = 'info') {
 }
 
 // ============================================================
-// 8. CITY AUTOCOMPLETE
+// CITY AUTOCOMPLETE
 // ============================================================
 
 function setupAutocomplete() {
@@ -624,7 +611,7 @@ function setupAutocomplete() {
 }
 
 // ============================================================
-// 9. ADVANCED TOGGLE
+// ADVANCED TOGGLE
 // ============================================================
 
 function setupAdvancedToggle() {
@@ -641,7 +628,7 @@ function setupAdvancedToggle() {
 }
 
 // ============================================================
-// 10. FORM SUBMIT HANDLER
+// FORM SUBMIT HANDLER
 // ============================================================
 
 function setupFormSubmit() {
@@ -706,7 +693,7 @@ function setupFormSubmit() {
 }
 
 // ============================================================
-// 11. LOCAL STORAGE - SAVE API KEY
+// SAVE API KEY TO LOCAL STORAGE
 // ============================================================
 
 function saveApiKey(key) {
@@ -718,7 +705,7 @@ function loadApiKey() {
 }
 
 // ============================================================
-// 12. INITIALIZATION
+// INITIALIZATION
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -727,7 +714,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupAdvancedToggle();
     setupFormSubmit();
 
-    // Load saved API Key
     const apiKeyInput = document.getElementById('api-key');
     if (apiKeyInput) {
         const savedKey = loadApiKey();
@@ -742,11 +728,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Make functions available globally
     window.TamilHoroscope = {
         calculateHoroscope,
         getLocationCoordinates,
         LOCATIONS,
-        AYANAMSA,
         CONFIG: CONFIG,
         test: async function(dob = '25/10/1992', time = '14:30', city = 'சென்னை') {
             const result = await calculateHoroscope(dob, time, city, CONFIG.API_KEY);
@@ -755,8 +741,51 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    console.log('✅ Tamil Horoscope App Loaded with Lahiri Ayanamsa');
+    console.log('✅ Tamil Horoscope App Loaded');
     console.log('🔑 API Key:', CONFIG.API_KEY.substring(0, 10) + '...');
     console.log('📐 Ayanamsa: LAHIRI (Thirukanitha Panchangam)');
     console.log('🌐 Try: TamilHoroscope.test()');
 });
+
+// ============================================================
+// ADD CSS FOR TOASTS (in case not in HTML)
+// ============================================================
+
+const style = document.createElement('style');
+style.textContent = `
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 14px 24px;
+        border-radius: 10px;
+        color: white;
+        font-size: 14px;
+        z-index: 9999;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        animation: slideIn 0.4s ease;
+        max-width: 400px;
+    }
+    .toast.success { background: #2ecc71; }
+    .toast.error { background: #e74c3c; }
+    .toast.info { background: #3498db; }
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #667eea;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 8px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
