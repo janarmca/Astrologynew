@@ -96,24 +96,25 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .form-group input[type="submit"] {
+        .form-group button {
+            padding: 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
+            border-radius: 8px;
             font-weight: 600;
             font-size: 16px;
-            padding: 12px;
             cursor: pointer;
             transition: transform 0.2s;
             margin-top: 0;
         }
 
-        .form-group input[type="submit"]:hover {
+        .form-group button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
 
-        .form-group input[type="submit"]:disabled {
+        .form-group button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
@@ -409,8 +410,8 @@
                         <input type="text" id="api-key" placeholder="API Key" value="ak-136ade485bd48f55033664d318f72471ef3ef481" required>
                     </div>
 
-                    <div class="form-group" style="grid-column: span 1;">
-                        <button type="submit" id="submit-btn" style="padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: transform 0.2s;">🔮 ஜாதகம் கணக்கிடு</button>
+                    <div class="form-group">
+                        <button type="submit" id="submit-btn">🔮 ஜாதகம் கணக்கிடு</button>
                     </div>
                 </div>
 
@@ -472,7 +473,7 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- JAVASCRIPT - EXTERNAL app.js -->
+    <!-- JAVASCRIPT - app.js -->
     <!-- ============================================================ -->
     <script src="app.js"></script>
 
