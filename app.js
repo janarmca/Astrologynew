@@ -86,34 +86,42 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
         });
 
         // ✅ FIXED: Using 'birthTime' not 'Time'
-        const response = await fetch(`${CONFIG.BASE_URL}/Calculate/HoroscopePredictions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': finalKey
+
+        
+     // Browser Console-ல் இதை ரன் செய்யவும்
+async function debugAPI() {
+    const response = await fetch('https://api.vedastro.org/api/Calculate/HoroscopePredictions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': 'ak-136ade485bd48f55033664d318f72471ef3ef481'
+        },
+        body: JSON.stringify({
+            Location: {
+                Latitude: 13.0827,
+                Longitude: 80.2707,
+                Name: 'Chennai'
             },
-            body: JSON.stringify({
-                Location: {
-                    Latitude: location.lat,
-                    Longitude: location.lon,
-                    Name: location.name || city || 'Custom'
-                },
-                birthTime: birthTime,  // ✅ FIXED
-                Ayanamsa: CONFIG.AYANAMSA
-            })
+            birthTime: '14:30 25/10/1992 +05:30',
+            Ayanamsa: 'LAHIRI'
+        })
+    });
+    
+    const data = await response.json();
+    console.log('📡 Full Response:', data);
+    console.log('📊 Planets Array:', data.Payload);
+    
+    // Check each planet
+    if (Array.isArray(data.Payload)) {
+        data.Payload.forEach(p => {
+            console.log(`🪐 ${p.Planet}: ${p.Sign} - House ${p.House}`);
         });
+    }
+    
+    return data;
+}
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Error:', errorText);
-            throw new Error(`API பிழை: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.Status === 'Fail') {
-            throw new Error(`API பிழை: ${data.Payload}`);
-        }
+await debugAPI();
 
         const planetPositions = extractPlanetPositions(data);
         const dashaData = await calculateDasha(dob, time, city, finalKey, location);
@@ -182,24 +190,44 @@ async function calculateDasha(dob, time, city, apiKey, location) {
     }
 }
 
+// இந்த code-ஐ உங்கள் app.js-ல் உள்ள extractPlanetPositions-க்கு பதிலாக Paste செய்யவும்
 function extractPlanetPositions(apiData) {
     const planets = {};
-    try {
-        let payload = apiData.Payload;
-        if (Array.isArray(payload)) {
-            payload.forEach(item => {
-                if (item.Planet && item.Sign) {
-                    const signIndex = getSignIndex(item.Sign);
-                    planets[item.Planet] = {
-                        sign: signIndex,
-                        signName: ZODIAC_SIGNS_TAMIL[signIndex] || item.Sign,
-                        house: item.House || null,
-                        degree: item.Degree || 0
-                    };
-                }
-            });
+    const payload = apiData.Payload;
+    
+    // Debug
+    console.log('🔍 Payload Type:', typeof payload);
+    console.log('🔍 Is Array:', Array.isArray(payload));
+    
+    // Case 1: Payload is Array
+    if (Array.isArray(payload)) {
+        payload.forEach(item => {
+            if (item.Planet && item.Sign) {
+                const signIndex = getSignIndex(item.Sign);
+                planets[item.Planet] = {
+                    sign: signIndex,
+                    signName: ZODIAC_SIGNS_TAMIL[signIndex] || item.Sign,
+                    house: item.House || 0,
+                    degree: item.Degree || 0
+                };
+            }
+        });
+    }
+    // Case 2: Payload is Object with Planets
+    else if (payload && typeof payload === 'object') {
+        if (payload.Planets) {
+            for (const [key, value] of Object.entries(payload.Planets)) {
+                const signIndex = getSignIndex(value.Sign);
+                planets[key] = {
+                    sign: signIndex,
+                    signName: ZODIAC_SIGNS_TAMIL[signIndex] || value.Sign,
+                    house: value.House || 0,
+                    degree: value.Degree || 0
+                };
+            }
         }
-        if (payload && payload.Ascendant) {
+        // Ascendant
+        if (payload.Ascendant) {
             const signIndex = getSignIndex(payload.Ascendant.Sign);
             planets['Ascendant'] = {
                 sign: signIndex,
@@ -208,12 +236,11 @@ function extractPlanetPositions(apiData) {
                 degree: payload.Ascendant.Degree || 0
             };
         }
-    } catch (e) {
-        console.warn('Extraction error:', e);
     }
+    
+    console.log('✅ Extracted Planets:', planets);
     return planets;
 }
-
 function parseDashaData(data) {
     let payload = data.Payload;
     if (payload && payload.VimshottariDasha) {
@@ -290,28 +317,26 @@ function prepareChartData(planetData) {
     return chart;
 }
 
+// Display planets in houses
 function displayHoroscope(result) {
-    if (result.status === 'error') {
-        alert(`❌ பிழை: ${result.message}`);
-        return;
-    }
-
     const chartData = prepareChartData(result.planets);
-
+    
     for (let i = 0; i < 12; i++) {
         const houseId = `p${i + 1}`;
-        const planetContainer = document.getElementById(`planets-${houseId}`);
-        if (planetContainer) {
+        const container = document.getElementById(`planets-${houseId}`);
+        if (container) {
             const planets = chartData[i] || [];
             if (planets.length > 0) {
-                planetContainer.textContent = planets.map(p => p.name).join(', ');
-                planetContainer.style.color = '#34495e';
+                container.textContent = planets.map(p => p.name).join(', ');
+                container.style.color = '#34495e';
             } else {
-                planetContainer.textContent = '−';
-                planetContainer.style.color = '#ccc';
+                container.textContent = '−';
+                container.style.color = '#ccc';
             }
         }
     }
+}
+
 
     if (result.lagna) {
         const p1 = document.getElementById('p1');
