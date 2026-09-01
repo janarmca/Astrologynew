@@ -210,7 +210,7 @@ function extractPlanetsVedAstro(data) {
 }
 
 // ============================================================
-// 6. ✅ FIXED: DASHA API - "checkTime" parameter
+// ✅ FIXED: DASHA API - "checkTime" parameter
 // ============================================================
 
 async function getDashaVedAstro(dob, time, location, apiKey) {
