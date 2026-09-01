@@ -1,5 +1,6 @@
 // ============================================================
-// TAMIL HOROSCOPE APP - COMPLETE FIX (Dasha + Planets)
+// TAMIL HOROSCOPE APP - COMPLETE FIXED VERSION
+// API: VedAstro
 // ============================================================
 
 const CONFIG = {
@@ -90,7 +91,7 @@ async function getLocationCoordinates(cityName, userLat, userLon) {
 }
 
 // ============================================================
-// 4. ✅ MAIN API CALL
+// 4. MAIN API CALL
 // ============================================================
 
 async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
@@ -101,6 +102,7 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
 
         console.log('📡 Calling VedAstro API...');
 
+        // ✅ Horoscope API - CORRECT
         const response = await fetch(`${CONFIG.BASE_URL}/Calculate/HoroscopePredictions`, {
             method: 'POST',
             headers: {
@@ -150,7 +152,7 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
 }
 
 // ============================================================
-// 5. ✅ EXTRACT PLANETS
+// 5. EXTRACT PLANETS
 // ============================================================
 
 function extractPlanetsVedAstro(data) {
@@ -210,18 +212,19 @@ function extractPlanetsVedAstro(data) {
 }
 
 // ============================================================
-// ✅ FIXED: DASHA API - CORRECT PARAMETER
+// 6. ✅ FIXED: DASHA API - CORRECT PARAMETER
 // ============================================================
 
 async function getDashaVedAstro(dob, time, location, apiKey) {
     try {
         const finalKey = apiKey || CONFIG.API_KEY;
         
-        // ✅ FIXED: Use 'birthTime' (not 'checkTime')
+        // ✅ Use 'birthTime' for Dasa API too
         const birthTime = `${time} ${dob} ${location.tz}`;
 
         console.log('📊 Getting Dasha with birthTime:', birthTime);
 
+        // ✅ Dasa API - CORRECT ENDPOINT + PARAMETER
         const response = await fetch(`https://api.vedastro.org/api/Calculate/DasaAtTime`, {
             method: 'POST',
             headers: {
@@ -234,7 +237,7 @@ async function getDashaVedAstro(dob, time, location, apiKey) {
                     Longitude: location.lon,
                     Name: location.name || 'Custom'
                 },
-                birthTime: birthTime,  // ✅ 'birthTime' for Dasa API
+                birthTime: birthTime,  // ✅ 'birthTime' for Dasa API too!
                 Ayanamsa: CONFIG.AYANAMSA,
                 DasaType: "Vimshottari"
             })
@@ -380,7 +383,6 @@ function displayHoroscope(result) {
 
     const chartData = prepareChartData(result.planets);
 
-    // Update each house with planets
     for (let i = 0; i < 12; i++) {
         const houseId = `p${i + 1}`;
         const planetContainer = document.getElementById(`planets-${houseId}`);
@@ -404,7 +406,6 @@ function displayHoroscope(result) {
         }
     }
 
-    // Show Lagna in house 1
     if (result.lagna) {
         const p1 = document.getElementById('p1');
         if (p1) {
@@ -419,7 +420,6 @@ function displayHoroscope(result) {
         }
     }
 
-    // Display Dasha
     displayDasha(result.dasha);
     displayBirthInfo(result);
     displayPredictionsVedAstro(result.rawData);
