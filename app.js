@@ -1,11 +1,21 @@
 // ============================================================
 // TAMIL HOROSCOPE APP - Full JavaScript
 // Lahiri Ayanamsa (Thirukanitha Panchangam)
+// API Key: ak-136ade485bd48f55033664d318f72471ef3ef481
 // ============================================================
 
 // ============================================================
 // 1. CONSTANTS & CONFIGURATION
 // ============================================================
+
+// ✅ YOUR API KEY
+const DEFAULT_API_KEY = 'ak-136ade485bd48f55033664d318f72471ef3ef481';
+
+const CONFIG = {
+    API_KEY: DEFAULT_API_KEY,
+    AYANAMSA: 'LAHIRI',
+    BASE_URL: 'https://api.vedastro.org/api'
+};
 
 const PLANET_NAMES_TAMIL = {
     'Sun': 'சூரியன்',
@@ -180,29 +190,34 @@ async function fetchCoordinatesFromPlaceName(placeName) {
 
 async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
     try {
+        // Use provided key or default
+        const finalKey = apiKey || CONFIG.API_KEY;
+        
         let location = await getLocationCoordinates(city, userLat, userLon);
         const stdTime = `${time} ${dob} ${location.tz}`;
 
-        const url = `https://api.vedastro.org/api/Calculate/HoroscopePredictions`;
-        const requestBody = {
-            Location: {
-                Latitude: location.lat,
-                Longitude: location.lon,
-                Name: location.name || city || 'Custom'
-            },
-            Time: { StdTime: stdTime },
-            Ayanamsa: "LAHIRI"
-        };
+        console.log('📡 API Request:', { 
+            url: `${CONFIG.BASE_URL}/Calculate/HoroscopePredictions`,
+            location: `${location.lat}, ${location.lon}`,
+            ayanamsa: CONFIG.AYANAMSA,
+            key: finalKey.substring(0, 10) + '...'
+        });
 
-        console.log('📡 API Request:', { url, location: `${location.lat}, ${location.lon}`, ayanamsa: 'LAHIRI' });
-
-        const response = await fetch(url, {
+        const response = await fetch(`${CONFIG.BASE_URL}/Calculate/HoroscopePredictions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': apiKey
+                'x-api-key': finalKey
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({
+                Location: {
+                    Latitude: location.lat,
+                    Longitude: location.lon,
+                    Name: location.name || city || 'Custom'
+                },
+                Time: { StdTime: stdTime },
+                Ayanamsa: CONFIG.AYANAMSA
+            })
         });
 
         if (!response.ok) {
@@ -216,7 +231,7 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
         }
 
         const planetPositions = extractPlanetPositions(data);
-        const dashaData = await calculateDasha(dob, time, city, apiKey, location);
+        const dashaData = await calculateDasha(dob, time, city, finalKey, location);
 
         return {
             status: 'success',
@@ -225,7 +240,7 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
             rawData: data,
             location: location,
             birthTime: stdTime,
-            ayanamsa: 'LAHIRI (Thirukanitha Panchangam)',
+            ayanamsa: CONFIG.AYANAMSA + ' (Thirukanitha Panchangam)',
             lagna: planetPositions['Ascendant'] || null
         };
 
@@ -243,26 +258,24 @@ async function calculateDasha(dob, time, city, apiKey, location) {
         }
 
         const stdTime = `${time} ${dob} ${loc.tz}`;
-        const url = `https://api.vedastro.org/api/Calculate/DasaAtTime`;
+        const finalKey = apiKey || CONFIG.API_KEY;
 
-        const requestBody = {
-            Location: {
-                Latitude: loc.lat,
-                Longitude: loc.lon,
-                Name: loc.name || city
-            },
-            Time: { StdTime: stdTime },
-            Ayanamsa: "LAHIRI",
-            DasaType: "Vimshottari"
-        };
-
-        const response = await fetch(url, {
+        const response = await fetch(`${CONFIG.BASE_URL}/Calculate/DasaAtTime`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'x-api-key': apiKey
+                'x-api-key': finalKey
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({
+                Location: {
+                    Latitude: loc.lat,
+                    Longitude: loc.lon,
+                    Name: loc.name || city
+                },
+                Time: { StdTime: stdTime },
+                Ayanamsa: CONFIG.AYANAMSA,
+                DasaType: "Vimshottari"
+            })
         });
 
         if (!response.ok) throw new Error(`Dasha API பிழை: ${response.status}`);
@@ -641,12 +654,12 @@ function setupFormSubmit() {
         const dob = document.getElementById('dob').value;
         const time = document.getElementById('time').value;
         const city = document.getElementById('city').value;
-        const apiKey = document.getElementById('api-key').value;
+        const apiKey = document.getElementById('api-key').value || CONFIG.API_KEY;
         const userLat = document.getElementById('user-lat').value;
         const userLon = document.getElementById('user-lon').value;
 
-        if (!dob || !time || !apiKey) {
-            alert('தயவு செய்து பிறந்த தேதி, நேரம் மற்றும் API Key ஐ உள்ளிடவும்');
+        if (!dob || !time) {
+            alert('தயவு செய்து பிறந்த தேதி மற்றும் நேரத்தை உள்ளிடவும்');
             return;
         }
 
@@ -693,7 +706,19 @@ function setupFormSubmit() {
 }
 
 // ============================================================
-// 11. INITIALIZATION
+// 11. LOCAL STORAGE - SAVE API KEY
+// ============================================================
+
+function saveApiKey(key) {
+    localStorage.setItem('horoscope_api_key', key);
+}
+
+function loadApiKey() {
+    return localStorage.getItem('horoscope_api_key') || CONFIG.API_KEY;
+}
+
+// ============================================================
+// 12. INITIALIZATION
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -702,19 +727,36 @@ document.addEventListener('DOMContentLoaded', function() {
     setupAdvancedToggle();
     setupFormSubmit();
 
+    // Load saved API Key
+    const apiKeyInput = document.getElementById('api-key');
+    if (apiKeyInput) {
+        const savedKey = loadApiKey();
+        if (savedKey) {
+            apiKeyInput.value = savedKey;
+        }
+        
+        apiKeyInput.addEventListener('change', function() {
+            if (this.value) {
+                saveApiKey(this.value);
+            }
+        });
+    }
+
     window.TamilHoroscope = {
         calculateHoroscope,
         getLocationCoordinates,
         LOCATIONS,
         AYANAMSA,
+        CONFIG: CONFIG,
         test: async function(dob = '25/10/1992', time = '14:30', city = 'சென்னை') {
-            const result = await calculateHoroscope(dob, time, city, 'FreeAPIUser');
+            const result = await calculateHoroscope(dob, time, city, CONFIG.API_KEY);
             console.log('🔮 Test Result:', result);
             return result;
         }
     };
 
     console.log('✅ Tamil Horoscope App Loaded with Lahiri Ayanamsa');
+    console.log('🔑 API Key:', CONFIG.API_KEY.substring(0, 10) + '...');
     console.log('📐 Ayanamsa: LAHIRI (Thirukanitha Panchangam)');
     console.log('🌐 Try: TamilHoroscope.test()');
 });
