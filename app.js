@@ -212,19 +212,18 @@ function extractPlanetsVedAstro(data) {
 }
 
 // ============================================================
-// 6. ✅ FIXED: DASHA API - CORRECT PARAMETER
+// ✅ FIXED: DASHA API - CORRECT PARAMETER
 // ============================================================
 
 async function getDashaVedAstro(dob, time, location, apiKey) {
     try {
         const finalKey = apiKey || CONFIG.API_KEY;
         
-        // ✅ Use 'birthTime' for Dasa API too
-        const birthTime = `${time} ${dob} ${location.tz}`;
+        // ✅ FIXED: Use 'checkTime' (not 'birthTime')
+        const checkTime = `${time} ${dob} ${location.tz}`;
 
-        console.log('📊 Getting Dasha with birthTime:', birthTime);
+        console.log('📊 Getting Dasha with checkTime:', checkTime);
 
-        // ✅ Dasa API - CORRECT ENDPOINT + PARAMETER
         const response = await fetch(`https://api.vedastro.org/api/Calculate/DasaAtTime`, {
             method: 'POST',
             headers: {
@@ -237,7 +236,7 @@ async function getDashaVedAstro(dob, time, location, apiKey) {
                     Longitude: location.lon,
                     Name: location.name || 'Custom'
                 },
-                birthTime: birthTime,  // ✅ 'birthTime' for Dasa API too!
+                checkTime: checkTime,  // ✅ 'checkTime' for Dasa API
                 Ayanamsa: CONFIG.AYANAMSA,
                 DasaType: "Vimshottari"
             })
@@ -301,7 +300,6 @@ async function getDashaVedAstro(dob, time, location, apiKey) {
         return null;
     }
 }
-
 // ============================================================
 // 7. CHART DISPLAY
 // ============================================================
