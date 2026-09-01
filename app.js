@@ -1,6 +1,5 @@
 // ============================================================
-// TAMIL HOROSCOPE APP - COMPLETE FIX
-// Planets + Dasha Working
+// TAMIL HOROSCOPE APP - COMPLETE FIX (Dasha + Planets)
 // ============================================================
 
 const CONFIG = {
@@ -91,7 +90,7 @@ async function getLocationCoordinates(cityName, userLat, userLon) {
 }
 
 // ============================================================
-// 4. ✅ MAIN API CALL - FIXED
+// 4. ✅ MAIN API CALL
 // ============================================================
 
 async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
@@ -130,10 +129,7 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
             throw new Error(`API பிழை: ${data.Payload || 'Unknown error'}`);
         }
 
-        // ✅ FIXED: Extract planets from both Payload and Planets
         const planetPositions = extractPlanetsVedAstro(data);
-        
-        // ✅ FIXED: Get Dasha
         const dashaData = await getDashaVedAstro(dob, time, location, finalKey);
 
         return {
@@ -154,7 +150,7 @@ async function calculateHoroscope(dob, time, city, apiKey, userLat, userLon) {
 }
 
 // ============================================================
-// 5. ✅ FIXED: EXTRACT PLANETS FROM VEDASTRO
+// 5. ✅ EXTRACT PLANETS
 // ============================================================
 
 function extractPlanetsVedAstro(data) {
@@ -163,10 +159,8 @@ function extractPlanetsVedAstro(data) {
 
     console.log('🔍 Extracting planets from VedAstro...');
 
-    // Case 1: Payload is Array
     if (Array.isArray(payload)) {
         payload.forEach(item => {
-            // Check if it's a planet entry (has Planet and Sign)
             if (item.Planet && item.Sign) {
                 const planetName = item.Planet;
                 const signName = item.Sign;
@@ -184,7 +178,6 @@ function extractPlanetsVedAstro(data) {
         });
     }
 
-    // Case 2: Payload has Planets object
     if (payload && payload.Planets) {
         for (const [key, value] of Object.entries(payload.Planets)) {
             const signName = value.Sign;
@@ -200,7 +193,6 @@ function extractPlanetsVedAstro(data) {
         }
     }
 
-    // Get Ascendant
     if (payload && payload.Ascendant) {
         const signName = payload.Ascendant.Sign;
         const signIndex = getSignIndex(signName);
@@ -218,15 +210,17 @@ function extractPlanetsVedAstro(data) {
 }
 
 // ============================================================
-// 6. ✅ FIXED: DASHA API
+// 6. ✅ FIXED: DASHA API - "checkTime" parameter
 // ============================================================
 
 async function getDashaVedAstro(dob, time, location, apiKey) {
     try {
         const finalKey = apiKey || CONFIG.API_KEY;
-        const birthTime = `${time} ${dob} ${location.tz}`;
+        
+        // ✅ FIXED: checkTime format - same as birthTime
+        const checkTime = `${time} ${dob} ${location.tz}`;
 
-        console.log('📊 Getting Dasha...');
+        console.log('📊 Getting Dasha with checkTime:', checkTime);
 
         const response = await fetch(`${CONFIG.BASE_URL}/Calculate/DasaAtTime`, {
             method: 'POST',
@@ -240,7 +234,7 @@ async function getDashaVedAstro(dob, time, location, apiKey) {
                     Longitude: location.lon,
                     Name: location.name || 'Custom'
                 },
-                birthTime: birthTime,
+                checkTime: checkTime,  // ✅ FIXED: 'checkTime' not 'birthTime'
                 Ayanamsa: CONFIG.AYANAMSA,
                 DasaType: "Vimshottari"
             })
@@ -306,7 +300,7 @@ async function getDashaVedAstro(dob, time, location, apiKey) {
 }
 
 // ============================================================
-// 7. ✅ FIXED: CHART DISPLAY
+// 7. CHART DISPLAY
 // ============================================================
 
 function buildChartGrid() {
@@ -365,7 +359,6 @@ function prepareChartData(planetData) {
         }
     }
 
-    // Sort planets in each house
     chart.forEach(house => {
         house.sort((a, b) => {
             if (a.isAscendant) return -1;
@@ -394,7 +387,6 @@ function displayHoroscope(result) {
         if (planetContainer) {
             const planets = chartData[i] || [];
             if (planets.length > 0) {
-                // Show planet names with house numbers
                 const names = planets.map(p => {
                     if (p.isAscendant) return '⬆️ லக்னம்';
                     return p.name;
@@ -429,19 +421,11 @@ function displayHoroscope(result) {
 
     // Display Dasha
     displayDasha(result.dasha);
-    
-    // Display Birth Info
     displayBirthInfo(result);
-    
-    // Display Predictions
     displayPredictionsVedAstro(result.rawData);
 
     showToast('✅ ஜாதகம் கணக்கிடப்பட்டது!', 'success');
 }
-
-// ============================================================
-// 8. ✅ FIXED: DISPLAY DASHA
-// ============================================================
 
 function displayDasha(dashaData) {
     const container = document.getElementById('dasha-info');
@@ -454,7 +438,6 @@ function displayDasha(dashaData) {
 
     let html = `<div class="dasha-grid">`;
 
-    // Mahadasha
     if (dashaData.currentDasha) {
         const d = dashaData.currentDasha;
         html += `
@@ -466,7 +449,6 @@ function displayDasha(dashaData) {
         `;
     }
 
-    // Bhukti (Antardasha)
     if (dashaData.currentBhukti) {
         const b = dashaData.currentBhukti;
         html += `
@@ -477,7 +459,6 @@ function displayDasha(dashaData) {
         `;
     }
 
-    // Pratyantar Dasha
     if (dashaData.currentPratyantar) {
         const p = dashaData.currentPratyantar;
         html += `
@@ -548,10 +529,6 @@ function displayPredictionsVedAstro(rawData) {
     container.innerHTML = html;
 }
 
-// ============================================================
-// 9. TOAST
-// ============================================================
-
 function showToast(message, type = 'info') {
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
@@ -569,7 +546,7 @@ function showToast(message, type = 'info') {
 }
 
 // ============================================================
-// 10. FORM HANDLERS
+// 8. FORM HANDLERS
 // ============================================================
 
 function setupAutocomplete() {
@@ -653,7 +630,7 @@ function setupFormSubmit() {
 }
 
 // ============================================================
-// 11. CSS
+// 9. CSS
 // ============================================================
 
 const style = document.createElement('style');
@@ -715,7 +692,7 @@ style.textContent = `
 document.head.appendChild(style);
 
 // ============================================================
-// 12. INIT
+// 10. INIT
 // ============================================================
 
 document.addEventListener('DOMContentLoaded', function() {
