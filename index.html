@@ -91,11 +91,6 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .form-group input[readonly] {
-            background: #f5f5f5;
-            cursor: not-allowed;
-        }
-
         .form-group button {
             padding: 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -106,7 +101,6 @@
             font-size: 16px;
             cursor: pointer;
             transition: transform 0.2s;
-            margin-top: 0;
             height: 100%;
             min-height: 46px;
         }
@@ -305,6 +299,37 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
+        .predictions-container {
+            margin-top: 20px;
+        }
+
+        .prediction-card {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .prediction-card .planet-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 15px;
+        }
+
+        .prediction-card .planet-sign {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+
+        .prediction-card .prediction-text {
+            color: #555;
+            font-size: 14px;
+            margin-top: 5px;
+            line-height: 1.5;
+        }
+
         .toast {
             position: fixed;
             bottom: 20px;
@@ -373,11 +398,13 @@
 <body>
 
     <div class="container">
+        <!-- HEADER -->
         <div class="header">
             <h1>🔮 தமிழ் ஜாதகம்</h1>
-            <p>Lahiri Ayanamsa (Thirukanitha Panchangam) - துல்லியமான ஜாதக கணக்கீடு</p>
+            <p>AstroVedika API - Lahiri Ayanamsa (Thirukanitha Panchangam) - துல்லியமான ஜாதக கணக்கீடு</p>
         </div>
 
+        <!-- FORM SECTION -->
         <div class="form-section">
             <form id="horoscope-form">
                 <div class="form-grid">
@@ -398,7 +425,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="api-key">🔑 VedAstro API Key</label>
+                        <label for="api-key">🔑 AstroVedika API Key</label>
                         <input type="text" id="api-key" placeholder="API Key" value="34e79705-9a11-5e56-b5ea-a189f8d60942" required>
                     </div>
 
@@ -407,6 +434,7 @@
                     </div>
                 </div>
 
+                <!-- Advanced Toggle -->
                 <button type="button" class="advanced-toggle" id="advanced-toggle">
                     🔧 Advanced (Coordinates)
                 </button>
@@ -434,13 +462,19 @@
             </form>
         </div>
 
+        <!-- BIRTH INFO -->
         <div id="birth-info" class="birth-info"></div>
 
+        <!-- CHART CONTAINER -->
         <div class="chart-container" id="chart-container">
             <div class="chart-title">🌟 12 ராசி கட்டங்கள்</div>
             <div class="chart-grid" id="chart-grid"></div>
         </div>
 
+        <!-- PREDICTIONS CONTAINER -->
+        <div id="predictions-container" class="predictions-container"></div>
+
+        <!-- DASHA SECTION -->
         <div class="dasha-section" id="dasha-section">
             <h3 style="margin-bottom: 15px; color: #2c3e50;">📅 தசா - புக்தி பலன்கள்</h3>
             <div id="dasha-info">
@@ -450,11 +484,15 @@
             </div>
         </div>
 
+        <!-- FOOTER -->
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px;">
-            <p>Powered by VedAstro API • Lahiri Ayanamsa (Thirukanitha Panchangam) • தமிழ் ஜோதிடம்</p>
+            <p>Powered by AstroVedika API • Lahiri Ayanamsa (Thirukanitha Panchangam) • தமிழ் ஜோதிடம்</p>
         </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT - app.js -->
+    <!-- ============================================================ -->
     <script src="app.js"></script>
 
 </body>
